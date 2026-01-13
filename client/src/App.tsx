@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
-import axios from 'axios';
 import { Activity, ShieldCheck, Zap, ArrowRight, BarChart3, Database } from 'lucide-react';
 import { LoadingOverlay } from './core/loading';
+import { apiClient } from './core/api/client';
 
 function App() {
   const [connectionStatus, setConnectionStatus] = useState<'loading' | 'ok' | 'error'>('loading');
@@ -10,7 +10,7 @@ function App() {
     // 백엔드 연결 확인
     const checkConnection = async () => {
       try {
-        await axios.get('http://localhost:8000/api/v1/health'); // 실제 API 경로에 맞춰 조정 필요
+        await apiClient.get('/v1/health', { skipLoading: true } as any);
         setConnectionStatus('ok');
       } catch (err) {
         setConnectionStatus('error');

@@ -129,6 +129,101 @@ import axios from 'axios';  // 금지!
 
 ---
 
+## 🎨 공통 UI 컴포넌트 (필수 사용)
+
+**디자인 요청 시 항상 먼저 공통 컴포넌트를 사용하세요!**
+
+모든 프론트엔드 개발 시 `@/core/ui`의 공통 컴포넌트를 **최우선**으로 사용하여 일관된 디자인을 유지합니다.
+
+### 사용 가능한 컴포넌트
+
+```tsx
+import {
+  // Form Components
+  Button, Input, Textarea, Select, Checkbox, Radio, RadioGroup,
+  // Layout Components
+  Card, CardHeader, CardBody, CardFooter,
+  Modal, ModalHeader, ModalBody, ModalFooter,
+  // Feedback Components
+  Badge, Alert
+} from '@/core/ui';
+```
+
+### 디자인 가이드라인 (2026 모던 핀테크)
+
+- **색상**: Indigo(Primary), Slate(Secondary), Emerald(Success), Red(Danger)
+- **둥근 모서리**: `rounded-xl`, `rounded-2xl` (부드러운 느낌)
+- **그림자**: `shadow-sm`, `shadow-md` (은은한 깊이감)
+- **간격**: 4px 단위 (`gap-2`, `p-4`, `mb-6`)
+- **애니메이션**: `transition-all duration-200` (부드러운 전환)
+- **호버 효과**: 밝기 변화 + 약간의 scale 변화
+
+### 컴포넌트 예시
+
+```tsx
+// ✅ 권장: 공통 컴포넌트 사용
+import { Button, Input, Card, Modal } from '@/core/ui';
+
+export const UserForm = () => (
+  <Card>
+    <CardHeader>User Information</CardHeader>
+    <CardBody>
+      <Input label="Email" type="email" required />
+      <Input label="Name" placeholder="Enter name" />
+      <Button variant="primary" size="md">Submit</Button>
+    </CardBody>
+  </Card>
+);
+
+// ❌ 금지: 커스텀 스타일 컴포넌트 직접 생성
+const CustomButton = () => (
+  <button style={{ padding: '10px' }}>...</button>  // 금지!
+);
+```
+
+### 컴포넌트별 사용법
+
+```tsx
+// Button
+<Button variant="primary|secondary|outline|ghost|danger" size="sm|md|lg" isLoading>
+  Click me
+</Button>
+
+// Input
+<Input label="Email" type="email" error="Invalid email" helperText="example@email.com" />
+
+// Select
+<Select label="Country" options={[{value: 'kr', label: 'Korea'}]} />
+
+// Checkbox
+<Checkbox label="Agree to terms" />
+
+// Radio
+<RadioGroup label="Plan">
+  <Radio name="plan" value="free" label="Free" />
+  <Radio name="plan" value="pro" label="Pro" helperText="$29/month" />
+</RadioGroup>
+
+// Badge
+<Badge variant="success|warning|danger|info" size="sm|md|lg" dot>Active</Badge>
+
+// Alert
+<Alert variant="success|warning|danger|info" title="Success" onClose={handleClose}>
+  Payment completed!
+</Alert>
+
+// Modal
+<Modal isOpen={isOpen} onClose={onClose} size="sm|md|lg|xl|full">
+  <ModalHeader onClose={onClose}>Title</ModalHeader>
+  <ModalBody>Content</ModalBody>
+  <ModalFooter>
+    <Button onClick={onClose}>Close</Button>
+  </ModalFooter>
+</Modal>
+```
+
+---
+
 ## 🛡️ 타입 안전성
 
 ### Python

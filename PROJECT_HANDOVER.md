@@ -720,6 +720,189 @@ export const PaymentForm: React.FC<PaymentFormProps> = ({ userId }) => {
 };
 ```
 
+### 8.3 공통 UI 컴포넌트 가이드 ⭐
+
+**중요: 모든 프론트엔드 개발 시 공통 컴포넌트를 최우선으로 사용하세요!**
+
+프로젝트는 일관된 디자인을 위해 `@/core/ui`에 모든 공통 UI 컴포넌트를 제공합니다.
+
+#### 사용 가능한 컴포넌트
+
+```tsx
+import {
+  // Form Components (입력 폼)
+  Button,        // 버튼 (primary, secondary, outline, ghost, danger)
+  Input,         // 텍스트 입력
+  Textarea,      // 여러 줄 텍스트 입력
+  Select,        // 드롭다운 선택
+  Checkbox,      // 체크박스
+  Radio,         // 라디오 버튼
+  RadioGroup,    // 라디오 그룹
+
+  // Layout Components (레이아웃)
+  Card,          // 카드 컨테이너
+  CardHeader,    // 카드 헤더
+  CardBody,      // 카드 본문
+  CardFooter,    // 카드 푸터
+  Modal,         // 모달 다이얼로그
+  ModalHeader,   // 모달 헤더
+  ModalBody,     // 모달 본문
+  ModalFooter,   // 모달 푸터
+
+  // Feedback Components (피드백)
+  Badge,         // 배지/라벨
+  Alert,         // 알림 메시지
+} from '@/core/ui';
+```
+
+#### 디자인 시스템 (2026 모던 핀테크)
+
+- **Primary Color**: Indigo-600 (`bg-indigo-600`, `text-indigo-600`)
+- **Secondary Color**: Slate-200 (`bg-slate-200`, `text-slate-900`)
+- **Success**: Emerald-600 (`bg-emerald-600`)
+- **Warning**: Amber-600 (`bg-amber-600`)
+- **Danger**: Red-600 (`bg-red-600`)
+- **Border Radius**: `rounded-xl` (12px), `rounded-2xl` (16px)
+- **Shadow**: `shadow-sm`, `shadow-md`, `shadow-lg`
+- **Spacing**: 4px 단위 (`p-4`, `gap-2`, `mb-6`)
+- **Animation**: `transition-all duration-200`
+
+#### 컴포넌트 사용 예시
+
+```tsx
+import { Button, Input, Card, Select, Checkbox, Badge, Alert, Modal } from '@/core/ui';
+
+// Form 예시
+<form className="space-y-4">
+  <Input
+    label="Email"
+    type="email"
+    placeholder="Enter your email"
+    error="Invalid email format"
+    helperText="We'll never share your email"
+    required
+  />
+
+  <Select
+    label="Country"
+    options={[
+      { value: 'kr', label: 'South Korea' },
+      { value: 'us', label: 'United States' },
+    ]}
+    placeholder="Select your country"
+  />
+
+  <Checkbox label="Agree to terms and conditions" />
+
+  <Button variant="primary" size="md" isLoading>
+    Submit
+  </Button>
+</form>
+
+// Card 예시
+<Card hover>
+  <CardHeader>User Profile</CardHeader>
+  <CardBody>
+    <p>Content goes here...</p>
+  </CardBody>
+  <CardFooter>
+    <Button variant="outline">Cancel</Button>
+    <Button variant="primary">Save</Button>
+  </CardFooter>
+</Card>
+
+// Badge 예시
+<Badge variant="success" size="sm" dot>Active</Badge>
+<Badge variant="warning">Pending</Badge>
+<Badge variant="danger">Failed</Badge>
+
+// Alert 예시
+<Alert variant="success" title="Success" onClose={handleClose}>
+  Your payment has been processed successfully!
+</Alert>
+
+// Modal 예시
+<Modal isOpen={isOpen} onClose={onClose} size="lg">
+  <ModalHeader onClose={onClose}>Confirm Payment</ModalHeader>
+  <ModalBody>
+    <p>Are you sure you want to proceed?</p>
+  </ModalBody>
+  <ModalFooter>
+    <Button variant="ghost" onClick={onClose}>Cancel</Button>
+    <Button variant="primary" onClick={handleConfirm}>Confirm</Button>
+  </ModalFooter>
+</Modal>
+```
+
+#### 컴포넌트 Variants & Props
+
+```tsx
+// Button
+<Button
+  variant="primary" | "secondary" | "outline" | "ghost" | "danger"
+  size="sm" | "md" | "lg"
+  isLoading={boolean}
+  fullWidth={boolean}
+/>
+
+// Input / Textarea
+<Input
+  label="Label"
+  error="Error message"
+  helperText="Helper text"
+  fullWidth={boolean}  // default: true
+/>
+
+// Select
+<Select
+  options={[{ value: string | number, label: string, disabled?: boolean }]}
+  placeholder="Select..."
+/>
+
+// Badge
+<Badge
+  variant="default" | "primary" | "success" | "warning" | "danger" | "info"
+  size="sm" | "md" | "lg"
+  dot={boolean}  // 점 표시
+/>
+
+// Alert
+<Alert
+  variant="info" | "success" | "warning" | "danger"
+  title="Optional title"
+  onClose={handleClose}  // 닫기 버튼 표시
+/>
+
+// Modal
+<Modal
+  isOpen={boolean}
+  onClose={() => void}
+  size="sm" | "md" | "lg" | "xl" | "full"
+  disableBackdropClick={boolean}  // 백드롭 클릭 닫기 비활성화
+/>
+```
+
+#### 개발 시 주의사항
+
+1. **항상 공통 컴포넌트 우선 사용**: 커스텀 컴포넌트 생성 금지
+2. **Tailwind CSS 사용**: 인라인 스타일 (`style={{ ... }}`) 절대 금지
+3. **일관된 디자인 유지**: 색상, 간격, 둥근 모서리 규칙 준수
+4. **cn() 유틸리티 사용**: 조건부 클래스는 `@/utils/cn` 사용
+
+```tsx
+import { cn } from '@/utils/cn';
+
+// ✅ 권장
+<div className={cn(
+  'px-4 py-2',
+  isActive && 'bg-indigo-600',
+  disabled && 'opacity-50'
+)}>
+
+// ❌ 금지
+<div style={{ padding: '8px 16px' }}>  // 인라인 스타일 금지!
+```
+
 ---
 
 ## 9. 환경 설정

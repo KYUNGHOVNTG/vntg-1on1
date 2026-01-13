@@ -1,21 +1,20 @@
 /**
- * Input Component
+ * Textarea Component
  *
- * 재사용 가능한 인풋 컴포넌트 (2026 모던 핀테크 디자인)
+ * 재사용 가능한 텍스트 영역 컴포넌트 (2026 모던 핀테크 디자인)
  *
  * @example
- * <Input
- *   label="Email"
- *   type="email"
- *   placeholder="Enter your email"
- *   required
+ * <Textarea
+ *   label="Description"
+ *   placeholder="Enter description"
+ *   rows={5}
  * />
  *
  * @example
- * <Input
- *   label="Password"
- *   type="password"
- *   error="Password must be at least 8 characters"
+ * <Textarea
+ *   label="Comment"
+ *   error="Comment must be at least 10 characters"
+ *   helperText="Max 500 characters"
  * />
  */
 
@@ -23,7 +22,7 @@ import React from 'react';
 import { AlertCircle } from 'lucide-react';
 import { cn } from '@/utils/cn';
 
-interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
+interface TextareaProps extends React.TextareaHTMLAttributes<HTMLTextAreaElement> {
   /** 라벨 텍스트 */
   label?: string;
   /** 에러 메시지 */
@@ -34,7 +33,7 @@ interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
   fullWidth?: boolean;
 }
 
-export const Input = React.forwardRef<HTMLInputElement, InputProps>(
+export const Textarea = React.forwardRef<HTMLTextAreaElement, TextareaProps>(
   (
     {
       label,
@@ -42,6 +41,7 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
       helperText,
       fullWidth = true,
       className = '',
+      rows = 4,
       ...props
     },
     ref
@@ -60,15 +60,17 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
           </label>
         )}
 
-        {/* Input 필드 */}
-        <input
+        {/* Textarea 필드 */}
+        <textarea
           ref={ref}
+          rows={rows}
           className={cn(
             // 기본 스타일
             'px-4 py-2.5 rounded-xl border',
             'bg-white text-slate-900 placeholder:text-slate-400',
             'transition-all duration-200',
             'focus:outline-none focus:ring-2',
+            'resize-vertical',
             // 일반 상태
             !hasError && [
               'border-slate-300',
@@ -104,4 +106,4 @@ export const Input = React.forwardRef<HTMLInputElement, InputProps>(
   }
 );
 
-Input.displayName = 'Input';
+Textarea.displayName = 'Textarea';
