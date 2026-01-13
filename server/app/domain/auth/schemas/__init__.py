@@ -19,13 +19,13 @@ class UserBase(BaseModel):
     """사용자 기본 정보"""
 
     emp_id: int = Field(..., description="직원 ID")
-    company_code: str = Field(..., description="회사 코드")
+    company_code: int = Field(..., description="회사 코드 (숫자)")
     email: str = Field(..., description="이메일")
-    emp_name: str = Field(..., description="직원 이름")
+    name: str = Field(..., description="직원 이름")
     emp_no: Optional[str] = Field(None, description="사원번호")
-    department_code: Optional[str] = Field(None, description="부서 코드")
+    dept_id: Optional[int] = Field(None, description="부서 ID")
     duty_code_id: Optional[int] = Field(None, description="직급 ID")
-    position_name: Optional[str] = Field(None, description="직위명")
+    pos_code_id: Optional[int] = Field(None, description="직책 ID")
 
 
 class UserInfo(UserBase):
@@ -69,17 +69,17 @@ class RoleInfo(BaseModel):
 class LoginRequest(BaseModel):
     """일반 로그인 요청"""
 
-    company_code: str = Field(..., description="회사 코드", min_length=1, max_length=20)
+    company_code: int = Field(..., description="회사 코드 (숫자)")
     email: EmailStr = Field(..., description="이메일")
-    password: str = Field(..., description="비밀번호", min_length=6, max_length=100)
+    password: str = Field(..., description="비밀번호", min_length=1, max_length=100)
     device_info: Optional[str] = Field(None, description="디바이스 정보")
 
     model_config = ConfigDict(
         json_schema_extra={
             "example": {
-                "company_code": "VNTG",
-                "email": "admin@vantage.com",
-                "password": "admin123",
+                "company_code": 100,
+                "email": "cjhol2107@vntgcorp.com",
+                "password": "test123",
                 "device_info": "Mozilla/5.0 (Windows NT 10.0; Win64; x64)"
             }
         }

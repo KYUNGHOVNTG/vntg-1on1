@@ -1,7 +1,12 @@
 """
-Auth 도메인 SQLAlchemy 모델
+Auth 도메인 SQLAlchemy 모델 (기존 DB 구조 기반)
 
-멀티 테넌시(COMPANY_CODE)와 RBAC를 지원하는 인증 모델입니다.
+기존에 생성된 테이블 구조에 맞춰 작성되었습니다:
+- companies (회사)
+- employees (직원)
+- role_groups (역할 그룹)
+- duty_role_mapping (직급-역할 매핑)
+- user_social_auth (소셜 로그인)
 """
 
 from datetime import datetime
@@ -19,314 +24,188 @@ from sqlalchemy import (
     String,
     Text,
 )
-from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from server.app.core.database import Base
 
 
 class Company(Base):
-    """회사(테넌트) 정보"""
+    """회사 정보 (기존 companies 테이블)"""
 
-    __tablename__ = "company"
+    __tablename__ = "companies"
 
-    company_code: Mapped[str] = mapped_column(String(20), primary_key=True)
-    company_name: Mapped[str] = mapped_column(String(200), nullable=False)
-    business_no: Mapped[Optional[str]] = mapped_column(String(20), nullable=True)
-    representative: Mapped[Optional[str]] = mapped_column(String(100), nullable=True)
-    address: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
-    phone: Mapped[Optional[str]] = mapped_column(String(20), nullable=True)
-    email: Mapped[Optional[str]] = mapped_column(String(100), nullable=True)
-    established_date: Mapped[Optional[datetime]] = mapped_column(Date, nullable=True)
-    use_yn: Mapped[str] = mapped_column(
-        CHAR(1), default="Y", nullable=False, server_default="Y"
-    )
+    company_code: Mapped[int] = mapped_column("company_cod", Integer, primary_key=True)
+    company_name: Mapped[Optional[str]] = mapped_column("company_nam", String, nullable=True)
+    domain: Mapped[Optional[str]] = mapped_column(String, nullable=True)
+    use_yn: Mapped[str] = mapped_column(CHAR(1), default="Y", nullable=False)
     created_at: Mapped[datetime] = mapped_column(
         DateTime, default=datetime.utcnow, nullable=False
     )
-    updated_at: Mapped[datetime] = mapped_column(
-        DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False
-    )
-    created_by: Mapped[Optional[str]] = mapped_column(String(50), nullable=True)
-    updated_by: Mapped[Optional[str]] = mapped_column(String(50), nullable=True)
+    updated_at: Mapped[Optional[datetime]] = mapped_column(DateTime, nullable=True)
 
     # Relationships
-    users: Mapped[list["UserAccount"]] = relationship(
-        back_populates="company", cascade="all, delete-orphan"
-    )
-
-    __table_args__ = (
-        CheckConstraint("use_yn IN ('Y', 'N')", name="ck_company_use_yn"),
-        Index("idx_company_use_yn", "use_yn"),
+    employees: Mapped[list["Employee"]] = relationship(
+        back_populates="company", foreign_keys="[Employee.company_code]"
     )
 
 
-class UserAccount(Base):
-    """사용자 계정 (직원 정보)"""
+class Employee(Base):
+    """직원 정보 (기존 employees 테이블)"""
 
-    __tablename__ = "user_account"
+    __tablename__ = "employees"
 
     emp_id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
-    company_code: Mapped[str] = mapped_column(
-        String(20), ForeignKey("company.company_code", ondelete="CASCADE"), nullable=False
+    company_code: Mapped[int] = mapped_column(
+        "company_cod", Integer, ForeignKey("companies.company_cod"), nullable=False
     )
-    email: Mapped[str] = mapped_column(String(100), nullable=False)
-    password_hash: Mapped[Optional[str]] = mapped_column(String(255), nullable=True)
-    emp_no: Mapped[Optional[str]] = mapped_column(String(50), nullable=True)
-    emp_name: Mapped[str] = mapped_column(String(100), nullable=False)
-    phone: Mapped[Optional[str]] = mapped_column(String(20), nullable=True)
-    mobile: Mapped[Optional[str]] = mapped_column(String(20), nullable=True)
-    department_code: Mapped[Optional[str]] = mapped_column(String(20), nullable=True)
+    emp_no: Mapped[Optional[str]] = mapped_column(String, nullable=True)
+    email: Mapped[str] = mapped_column(String, nullable=False)
+    name: Mapped[str] = mapped_column(String, nullable=False)
+    phone: Mapped[Optional[str]] = mapped_column(String, nullable=True)
+    hire_date: Mapped[Optional[datetime]] = mapped_column(Date, nullable=True)
+    dept_id: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
+    pos_code_id: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
     duty_code_id: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
-    position_name: Mapped[Optional[str]] = mapped_column(String(100), nullable=True)
-    join_date: Mapped[Optional[datetime]] = mapped_column(Date, nullable=True)
-    resign_date: Mapped[Optional[datetime]] = mapped_column(Date, nullable=True)
-    profile_image_url: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
-    last_login_at: Mapped[Optional[datetime]] = mapped_column(DateTime, nullable=True)
-    password_changed_at: Mapped[Optional[datetime]] = mapped_column(DateTime, nullable=True)
-    failed_login_count: Mapped[int] = mapped_column(Integer, default=0, nullable=False)
-    account_locked_until: Mapped[Optional[datetime]] = mapped_column(DateTime, nullable=True)
-    use_yn: Mapped[str] = mapped_column(
-        CHAR(1), default="Y", nullable=False, server_default="Y"
-    )
+    user_category: Mapped[Optional[str]] = mapped_column(String, nullable=True)
+    account_status: Mapped[Optional[str]] = mapped_column(String, nullable=True)
+    use_yn: Mapped[str] = mapped_column(CHAR(1), default="Y", nullable=False)
     created_at: Mapped[datetime] = mapped_column(
         DateTime, default=datetime.utcnow, nullable=False
     )
-    updated_at: Mapped[datetime] = mapped_column(
-        DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False
-    )
-    created_by: Mapped[Optional[str]] = mapped_column(String(50), nullable=True)
-    updated_by: Mapped[Optional[str]] = mapped_column(String(50), nullable=True)
+    login_id: Mapped[Optional[str]] = mapped_column(String, nullable=True)
+    password: Mapped[Optional[str]] = mapped_column(String, nullable=True)
+    last_login_at: Mapped[Optional[datetime]] = mapped_column(DateTime, nullable=True)
+
+    # 추가 필드 (인증 관련)
+    failed_login_count: Mapped[int] = mapped_column(Integer, default=0, nullable=False, server_default="0")
+    account_locked_until: Mapped[Optional[datetime]] = mapped_column(DateTime, nullable=True)
+    password_changed_at: Mapped[Optional[datetime]] = mapped_column(DateTime, nullable=True)
 
     # Relationships
-    company: Mapped["Company"] = relationship(back_populates="users")
+    company: Mapped["Company"] = relationship(
+        back_populates="employees", foreign_keys=[company_code]
+    )
     social_auths: Mapped[list["UserSocialAuth"]] = relationship(
-        back_populates="user", cascade="all, delete-orphan"
+        back_populates="employee", cascade="all, delete-orphan"
     )
-    user_roles: Mapped[list["RbacUserRole"]] = relationship(
-        back_populates="user", cascade="all, delete-orphan"
-    )
-    refresh_tokens: Mapped[list["RefreshToken"]] = relationship(
-        back_populates="user", cascade="all, delete-orphan"
+    duty_role_mappings: Mapped[list["DutyRoleMapping"]] = relationship(
+        back_populates="employee",
+        primaryjoin="and_(Employee.duty_code_id==DutyRoleMapping.duty_code_id, Employee.company_code==DutyRoleMapping.company_code)",
+        foreign_keys="[DutyRoleMapping.duty_code_id, DutyRoleMapping.company_code]",
+        viewonly=True
     )
 
-    __table_args__ = (
-        CheckConstraint("use_yn IN ('Y', 'N')", name="ck_user_use_yn"),
-        Index("idx_user_company_email", "company_code", "email", unique=True),
-        Index("idx_user_emp_no", "company_code", "emp_no"),
-        Index("idx_user_use_yn", "use_yn"),
+
+class RoleGroup(Base):
+    """역할 그룹 (기존 role_groups 테이블)"""
+
+    __tablename__ = "role_groups"
+
+    role_group_id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    company_code: Mapped[Optional[int]] = mapped_column(
+        "company_cod", Integer, ForeignKey("companies.company_cod"), nullable=True
     )
+    role_group_name: Mapped[Optional[str]] = mapped_column(
+        "role_group_na", String, nullable=True
+    )
+    use_yn: Mapped[str] = mapped_column(CHAR(1), default="Y", nullable=False)
+
+    # Relationships
+    duty_role_mappings: Mapped[list["DutyRoleMapping"]] = relationship(
+        back_populates="role_group"
+    )
+    role_menu_maps: Mapped[list["RoleMenuMap"]] = relationship(
+        back_populates="role_group"
+    )
+
+
+class DutyRoleMapping(Base):
+    """직급-역할 매핑 (기존 duty_role_mapping 테이블)"""
+
+    __tablename__ = "duty_role_mapping"
+
+    mapping_id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    company_code: Mapped[Optional[int]] = mapped_column(
+        "company_cod", Integer, nullable=True
+    )
+    duty_code_id: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
+    role_group_id: Mapped[Optional[int]] = mapped_column(
+        Integer, ForeignKey("role_groups.role_group_id"), nullable=True
+    )
+    use_yn: Mapped[str] = mapped_column(CHAR(1), default="Y", nullable=False)
+
+    # Relationships
+    role_group: Mapped["RoleGroup"] = relationship(back_populates="duty_role_mappings")
+    employee: Mapped["Employee"] = relationship(
+        viewonly=True,
+        foreign_keys=[duty_code_id, company_code],
+        primaryjoin="and_(DutyRoleMapping.duty_code_id==Employee.duty_code_id, DutyRoleMapping.company_code==Employee.company_code)"
+    )
+
+
+class Menu(Base):
+    """메뉴 (기존 menus 테이블)"""
+
+    __tablename__ = "menus"
+
+    menu_id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    menu_name: Mapped[Optional[str]] = mapped_column(String, nullable=True)
+    menu_path: Mapped[Optional[str]] = mapped_column(String, nullable=True)
+    parent_menu_id: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
+    menu_order: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
+    use_yn: Mapped[str] = mapped_column(CHAR(1), default="Y", nullable=False)
+
+    # Relationships
+    role_menu_maps: Mapped[list["RoleMenuMap"]] = relationship(back_populates="menu")
+
+
+class RoleMenuMap(Base):
+    """역할-메뉴 매핑 (기존 role_menu_map 테이블)"""
+
+    __tablename__ = "role_menu_map"
+
+    map_id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    role_group_id: Mapped[Optional[int]] = mapped_column(
+        Integer, ForeignKey("role_groups.role_group_id"), nullable=True
+    )
+    menu_id: Mapped[Optional[int]] = mapped_column(
+        Integer, ForeignKey("menus.menu_id"), nullable=True
+    )
+    use_yn: Mapped[str] = mapped_column(CHAR(1), default="Y", nullable=False)
+
+    # Relationships
+    role_group: Mapped["RoleGroup"] = relationship(back_populates="role_menu_maps")
+    menu: Mapped["Menu"] = relationship(back_populates="role_menu_maps")
 
 
 class UserSocialAuth(Base):
-    """소셜 로그인 연동 정보"""
+    """소셜 로그인 연동 (기존 user_social_auth 테이블)"""
 
     __tablename__ = "user_social_auth"
 
-    social_auth_id: Mapped[int] = mapped_column(
-        Integer, primary_key=True, autoincrement=True
+    social_id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
+    emp_id: Mapped[Optional[int]] = mapped_column(
+        Integer, ForeignKey("employees.emp_id"), nullable=True
     )
-    emp_id: Mapped[int] = mapped_column(
-        Integer, ForeignKey("user_account.emp_id", ondelete="CASCADE"), nullable=False
-    )
-    company_code: Mapped[str] = mapped_column(
-        String(20), ForeignKey("company.company_code", ondelete="CASCADE"), nullable=False
-    )
-    provider: Mapped[str] = mapped_column(String(20), nullable=False)
-    provider_id: Mapped[str] = mapped_column(String(255), nullable=False)
-    provider_email: Mapped[Optional[str]] = mapped_column(String(100), nullable=True)
-    access_token: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
-    refresh_token: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
-    token_expires_at: Mapped[Optional[datetime]] = mapped_column(DateTime, nullable=True)
-    profile_data: Mapped[Optional[dict]] = mapped_column(JSONB, nullable=True)
-    use_yn: Mapped[str] = mapped_column(
-        CHAR(1), default="Y", nullable=False, server_default="Y"
-    )
-    created_at: Mapped[datetime] = mapped_column(
-        DateTime, default=datetime.utcnow, nullable=False
-    )
-    updated_at: Mapped[datetime] = mapped_column(
-        DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False
-    )
+    provider: Mapped[Optional[str]] = mapped_column(String, nullable=True)
+    provider_user_id: Mapped[Optional[str]] = mapped_column(String, nullable=True)
+    use_yn: Mapped[str] = mapped_column(CHAR(1), default="Y", nullable=False)
+    created_at: Mapped[Optional[datetime]] = mapped_column(DateTime, nullable=True)
 
     # Relationships
-    user: Mapped["UserAccount"] = relationship(back_populates="social_auths")
-
-    __table_args__ = (
-        CheckConstraint(
-            "provider IN ('GOOGLE', 'KAKAO', 'NAVER', 'MICROSOFT')",
-            name="ck_social_auth_provider",
-        ),
-        CheckConstraint("use_yn IN ('Y', 'N')", name="ck_social_auth_use_yn"),
-        Index("idx_social_auth_emp", "emp_id"),
-        Index(
-            "idx_social_auth_provider",
-            "company_code",
-            "provider",
-            "provider_id",
-            unique=True,
-        ),
-    )
-
-
-class RbacRole(Base):
-    """RBAC 역할 정의"""
-
-    __tablename__ = "rbac_role"
-
-    role_id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
-    company_code: Mapped[str] = mapped_column(
-        String(20), ForeignKey("company.company_code", ondelete="CASCADE"), nullable=False
-    )
-    role_code: Mapped[str] = mapped_column(String(50), nullable=False)
-    role_name: Mapped[str] = mapped_column(String(100), nullable=False)
-    description: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
-    is_system_role: Mapped[bool] = mapped_column(Boolean, default=False, nullable=False)
-    use_yn: Mapped[str] = mapped_column(
-        CHAR(1), default="Y", nullable=False, server_default="Y"
-    )
-    created_at: Mapped[datetime] = mapped_column(
-        DateTime, default=datetime.utcnow, nullable=False
-    )
-    updated_at: Mapped[datetime] = mapped_column(
-        DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False
-    )
-    created_by: Mapped[Optional[str]] = mapped_column(String(50), nullable=True)
-    updated_by: Mapped[Optional[str]] = mapped_column(String(50), nullable=True)
-
-    # Relationships
-    role_permissions: Mapped[list["RbacRolePermission"]] = relationship(
-        back_populates="role", cascade="all, delete-orphan"
-    )
-    user_roles: Mapped[list["RbacUserRole"]] = relationship(
-        back_populates="role", cascade="all, delete-orphan"
-    )
-
-    __table_args__ = (
-        CheckConstraint("use_yn IN ('Y', 'N')", name="ck_role_use_yn"),
-        Index("idx_rbac_role_company", "company_code"),
-        Index("idx_rbac_role_code", "company_code", "role_code", unique=True),
-    )
-
-
-class RbacPermission(Base):
-    """RBAC 권한 정의"""
-
-    __tablename__ = "rbac_permission"
-
-    permission_id: Mapped[int] = mapped_column(
-        Integer, primary_key=True, autoincrement=True
-    )
-    permission_code: Mapped[str] = mapped_column(String(100), nullable=False, unique=True)
-    permission_name: Mapped[str] = mapped_column(String(100), nullable=False)
-    resource: Mapped[str] = mapped_column(String(50), nullable=False)
-    action: Mapped[str] = mapped_column(String(20), nullable=False)
-    description: Mapped[Optional[str]] = mapped_column(Text, nullable=True)
-    is_system_permission: Mapped[bool] = mapped_column(
-        Boolean, default=False, nullable=False
-    )
-    use_yn: Mapped[str] = mapped_column(
-        CHAR(1), default="Y", nullable=False, server_default="Y"
-    )
-    created_at: Mapped[datetime] = mapped_column(
-        DateTime, default=datetime.utcnow, nullable=False
-    )
-    updated_at: Mapped[datetime] = mapped_column(
-        DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False
-    )
-
-    # Relationships
-    role_permissions: Mapped[list["RbacRolePermission"]] = relationship(
-        back_populates="permission", cascade="all, delete-orphan"
-    )
-
-    __table_args__ = (
-        CheckConstraint("use_yn IN ('Y', 'N')", name="ck_permission_use_yn"),
-        Index("idx_rbac_perm_code", "permission_code"),
-        Index("idx_rbac_perm_resource", "resource", "action"),
-    )
-
-
-class RbacRolePermission(Base):
-    """RBAC 역할-권한 매핑"""
-
-    __tablename__ = "rbac_role_permission"
-
-    role_permission_id: Mapped[int] = mapped_column(
-        Integer, primary_key=True, autoincrement=True
-    )
-    role_id: Mapped[int] = mapped_column(
-        Integer, ForeignKey("rbac_role.role_id", ondelete="CASCADE"), nullable=False
-    )
-    permission_id: Mapped[int] = mapped_column(
-        Integer,
-        ForeignKey("rbac_permission.permission_id", ondelete="CASCADE"),
-        nullable=False,
-    )
-    created_at: Mapped[datetime] = mapped_column(
-        DateTime, default=datetime.utcnow, nullable=False
-    )
-    created_by: Mapped[Optional[str]] = mapped_column(String(50), nullable=True)
-
-    # Relationships
-    role: Mapped["RbacRole"] = relationship(back_populates="role_permissions")
-    permission: Mapped["RbacPermission"] = relationship(back_populates="role_permissions")
-
-    __table_args__ = (
-        Index("idx_role_perm_role", "role_id"),
-        Index("idx_role_perm_permission", "permission_id"),
-        Index("idx_role_perm_unique", "role_id", "permission_id", unique=True),
-    )
-
-
-class RbacUserRole(Base):
-    """RBAC 사용자-역할 매핑"""
-
-    __tablename__ = "rbac_user_role"
-
-    user_role_id: Mapped[int] = mapped_column(
-        Integer, primary_key=True, autoincrement=True
-    )
-    emp_id: Mapped[int] = mapped_column(
-        Integer, ForeignKey("user_account.emp_id", ondelete="CASCADE"), nullable=False
-    )
-    role_id: Mapped[int] = mapped_column(
-        Integer, ForeignKey("rbac_role.role_id", ondelete="CASCADE"), nullable=False
-    )
-    granted_at: Mapped[datetime] = mapped_column(
-        DateTime, default=datetime.utcnow, nullable=False
-    )
-    granted_by: Mapped[Optional[str]] = mapped_column(String(50), nullable=True)
-    revoked_at: Mapped[Optional[datetime]] = mapped_column(DateTime, nullable=True)
-    revoked_by: Mapped[Optional[str]] = mapped_column(String(50), nullable=True)
-    use_yn: Mapped[str] = mapped_column(
-        CHAR(1), default="Y", nullable=False, server_default="Y"
-    )
-
-    # Relationships
-    user: Mapped["UserAccount"] = relationship(back_populates="user_roles")
-    role: Mapped["RbacRole"] = relationship(back_populates="user_roles")
-
-    __table_args__ = (
-        CheckConstraint("use_yn IN ('Y', 'N')", name="ck_user_role_use_yn"),
-        Index("idx_user_role_emp", "emp_id"),
-        Index("idx_user_role_role", "role_id"),
-        Index("idx_user_role_unique", "emp_id", "role_id", unique=True),
-    )
+    employee: Mapped["Employee"] = relationship(back_populates="social_auths")
 
 
 class RefreshToken(Base):
-    """Refresh Token 저장소"""
+    """Refresh Token 저장소 (신규 테이블 - 필요시 생성)"""
 
-    __tablename__ = "refresh_token"
+    __tablename__ = "refresh_tokens"
 
     token_id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
     emp_id: Mapped[int] = mapped_column(
-        Integer, ForeignKey("user_account.emp_id", ondelete="CASCADE"), nullable=False
+        Integer, ForeignKey("employees.emp_id"), nullable=False
     )
-    company_code: Mapped[str] = mapped_column(
-        String(20), ForeignKey("company.company_code", ondelete="CASCADE"), nullable=False
-    )
+    company_code: Mapped[int] = mapped_column(Integer, nullable=False)
     token_hash: Mapped[str] = mapped_column(String(255), nullable=False, unique=True)
     expires_at: Mapped[datetime] = mapped_column(DateTime, nullable=False)
     device_info: Mapped[Optional[str]] = mapped_column(String(200), nullable=True)
@@ -341,9 +220,6 @@ class RefreshToken(Base):
         DateTime, default=datetime.utcnow, onupdate=datetime.utcnow, nullable=False
     )
 
-    # Relationships
-    user: Mapped["UserAccount"] = relationship(back_populates="refresh_tokens")
-
     __table_args__ = (
         Index("idx_refresh_token_emp", "emp_id"),
         Index("idx_refresh_token_hash", "token_hash"),
@@ -353,17 +229,13 @@ class RefreshToken(Base):
 
 
 class LoginHistory(Base):
-    """로그인 이력 (감사 로그)"""
+    """로그인 이력 (신규 테이블 - 필요시 생성)"""
 
     __tablename__ = "login_history"
 
     history_id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
-    emp_id: Mapped[Optional[int]] = mapped_column(
-        Integer, ForeignKey("user_account.emp_id", ondelete="SET NULL"), nullable=True
-    )
-    company_code: Mapped[Optional[str]] = mapped_column(
-        String(20), ForeignKey("company.company_code", ondelete="SET NULL"), nullable=True
-    )
+    emp_id: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
+    company_code: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
     email: Mapped[str] = mapped_column(String(100), nullable=False)
     login_method: Mapped[Optional[str]] = mapped_column(String(20), nullable=True)
     login_success: Mapped[bool] = mapped_column(Boolean, nullable=False)
@@ -376,10 +248,6 @@ class LoginHistory(Base):
     )
 
     __table_args__ = (
-        CheckConstraint(
-            "login_method IN ('PASSWORD', 'GOOGLE', 'KAKAO', 'NAVER', 'MICROSOFT')",
-            name="ck_login_method",
-        ),
         Index("idx_login_history_emp", "emp_id"),
         Index("idx_login_history_email", "company_code", "email"),
         Index("idx_login_history_created", "created_at"),
