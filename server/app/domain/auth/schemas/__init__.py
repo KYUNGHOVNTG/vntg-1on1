@@ -89,14 +89,14 @@ class LoginRequest(BaseModel):
 class GoogleLoginRequest(BaseModel):
     """구글 OAuth 로그인 요청"""
 
-    company_code: str = Field(..., description="회사 코드", min_length=1, max_length=20)
+    company_code: int = Field(..., description="회사 코드 (숫자)")
     google_token: str = Field(..., description="구글 ID 토큰 (JWT)")
     device_info: Optional[str] = Field(None, description="디바이스 정보")
 
     model_config = ConfigDict(
         json_schema_extra={
             "example": {
-                "company_code": "VNTG",
+                "company_code": 100,
                 "google_token": "eyJhbGciOiJSUzI1NiIsImtpZCI6IjI3...",
                 "device_info": "Mozilla/5.0"
             }
@@ -272,7 +272,7 @@ class CurrentUserResponse(BaseModel):
 class AuthProviderInput(BaseModel):
     """AuthProvider 입력 데이터"""
 
-    company_code: str
+    company_code: int
     email: Optional[str] = None
     google_id: Optional[str] = None
     emp_id: Optional[int] = None

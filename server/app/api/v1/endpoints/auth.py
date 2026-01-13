@@ -15,6 +15,7 @@ from server.app.domain.auth.schemas import (
     ChangePasswordRequest,
     ChangePasswordResponse,
     CurrentUserResponse,
+    GoogleLoginRequest,
     LoginRequest,
     LoginResponse,
     LogoutResponse,
@@ -23,6 +24,7 @@ from server.app.domain.auth.schemas import (
     RoleInfo,
     UserInfo,
 )
+from server.app.domain.auth.google_oauth_service import GoogleOAuthService
 from server.app.domain.auth.service import AuthService
 from server.app.shared.exceptions import ApplicationException
 from server.app.shared.utils.jwt import verify_token
@@ -72,6 +74,55 @@ async def login(
 
     if not result.success:
         raise ApplicationException(message=result.error or "Login failed", status_code=401)
+
+    return result.data
+
+
+@router.post(
+    "/google",
+    response_model=LoginResponse,
+    status_code=status.HTTP_200_OK,
+    summary="구글 OAuth 로그인",
+    description="""
+    구글 ID 토큰으로 로그인합니다.
+
+    **멀티 테넌시**: company_code (숫자)로 회사를 구분합니다.
+    **인증 방식**: Google OAuth 2.0 (ID Token)
+    **응답**: Access Token + Refresh Token + 사용자 정보 + 권한 목록
+
+    **프로세스**:
+    1. 구글 ID 토큰을 검증합니다.
+    2. user_social_auth 테이블에서 기존 연동을 조회합니다.
+    3. 연동이 있으면 → 해당 직원으로 로그인
+    4. 연동이 없으면 → 이메일로 직원을 찾아 연동 생성
+    5. JWT 토큰을 발급합니다.
+
+    **주의사항**:
+    - 구글에 등록된 이메일이 employees 테이블에 존재해야 합니다.
+    - use_yn='Y', account_status='ACTIVE'인 계정만 로그인 가능합니다.
+    - 처음 구글 로그인 시 자동으로 계정이 연동됩니다.
+    """,
+)
+async def google_login(
+    request: GoogleLoginRequest,
+    req: Request,
+    db: AsyncSession = Depends(get_db),
+) -> LoginResponse:
+    """구글 OAuth 로그인"""
+    service = GoogleOAuthService(db=db)
+
+    # IP 주소 및 User Agent 추출
+    ip_address = req.client.host if req.client else None
+    user_agent = req.headers.get("user-agent")
+
+    result = await service.execute(
+        request, ip_address=ip_address, user_agent=user_agent
+    )
+
+    if not result.success:
+        raise ApplicationException(
+            message=result.error or "Google login failed", status_code=401
+        )
 
     return result.data
 
@@ -326,13 +377,13 @@ async def health_check():
     return {
         "status": "healthy",
         "service": "auth",
-        "version": "Phase 2",
+        "version": "Phase 3",
         "features": {
             "login": "enabled",
+            "google_oauth": "enabled",
             "refresh_token": "enabled",
             "logout": "enabled",
             "me": "enabled",
             "hash_password": "enabled (dev only)",
-            "oauth": "disabled (Phase 3)",
         }
     }
