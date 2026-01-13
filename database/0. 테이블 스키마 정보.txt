@@ -1,0 +1,578 @@
+[
+  {
+    "table_name": "assignments",
+    "column_name": "assignment_id",
+    "data_type": "integer",
+    "character_maximum_length": null,
+    "is_nullable": "NO",
+    "column_default": "nextval('assignments_assignment_id_seq'::regclass)"
+  },
+  {
+    "table_name": "assignments",
+    "column_name": "emp_id",
+    "data_type": "integer",
+    "character_maximum_length": null,
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "assignments",
+    "column_name": "dept_id",
+    "data_type": "integer",
+    "character_maximum_length": null,
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "assignments",
+    "column_name": "primary_yn",
+    "data_type": "character",
+    "character_maximum_length": 1,
+    "is_nullable": "YES",
+    "column_default": "'Y'::bpchar"
+  },
+  {
+    "table_name": "assignments",
+    "column_name": "assignment_type",
+    "data_type": "character varying",
+    "character_maximum_length": 20,
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "assignments",
+    "column_name": "start_date",
+    "data_type": "date",
+    "character_maximum_length": null,
+    "is_nullable": "NO",
+    "column_default": null
+  },
+  {
+    "table_name": "assignments",
+    "column_name": "end_date",
+    "data_type": "date",
+    "character_maximum_length": null,
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "assignments",
+    "column_name": "use_yn",
+    "data_type": "character",
+    "character_maximum_length": 1,
+    "is_nullable": "YES",
+    "column_default": "'Y'::bpchar"
+  },
+  {
+    "table_name": "assignments",
+    "column_name": "created_at",
+    "data_type": "timestamp without time zone",
+    "character_maximum_length": null,
+    "is_nullable": "YES",
+    "column_default": "CURRENT_TIMESTAMP"
+  },
+  {
+    "table_name": "common_codes",
+    "column_name": "code_id",
+    "data_type": "integer",
+    "character_maximum_length": null,
+    "is_nullable": "NO",
+    "column_default": "nextval('common_codes_code_id_seq'::regclass)"
+  },
+  {
+    "table_name": "common_codes",
+    "column_name": "company_code",
+    "data_type": "integer",
+    "character_maximum_length": null,
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "common_codes",
+    "column_name": "group_code",
+    "data_type": "character varying",
+    "character_maximum_length": 50,
+    "is_nullable": "NO",
+    "column_default": null
+  },
+  {
+    "table_name": "common_codes",
+    "column_name": "code_value",
+    "data_type": "character varying",
+    "character_maximum_length": 50,
+    "is_nullable": "NO",
+    "column_default": null
+  },
+  {
+    "table_name": "common_codes",
+    "column_name": "code_name",
+    "data_type": "character varying",
+    "character_maximum_length": 100,
+    "is_nullable": "NO",
+    "column_default": null
+  },
+  {
+    "table_name": "common_codes",
+    "column_name": "sort_order",
+    "data_type": "integer",
+    "character_maximum_length": null,
+    "is_nullable": "YES",
+    "column_default": "0"
+  },
+  {
+    "table_name": "common_codes",
+    "column_name": "use_yn",
+    "data_type": "character",
+    "character_maximum_length": 1,
+    "is_nullable": "YES",
+    "column_default": "'Y'::bpchar"
+  },
+  {
+    "table_name": "companies",
+    "column_name": "company_code",
+    "data_type": "integer",
+    "character_maximum_length": null,
+    "is_nullable": "NO",
+    "column_default": null
+  },
+  {
+    "table_name": "companies",
+    "column_name": "company_name",
+    "data_type": "character varying",
+    "character_maximum_length": 100,
+    "is_nullable": "NO",
+    "column_default": null
+  },
+  {
+    "table_name": "companies",
+    "column_name": "domain",
+    "data_type": "character varying",
+    "character_maximum_length": 100,
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "companies",
+    "column_name": "use_yn",
+    "data_type": "character",
+    "character_maximum_length": 1,
+    "is_nullable": "YES",
+    "column_default": "'Y'::bpchar"
+  },
+  {
+    "table_name": "companies",
+    "column_name": "created_at",
+    "data_type": "timestamp without time zone",
+    "character_maximum_length": null,
+    "is_nullable": "YES",
+    "column_default": "CURRENT_TIMESTAMP"
+  },
+  {
+    "table_name": "companies",
+    "column_name": "updated_at",
+    "data_type": "timestamp without time zone",
+    "character_maximum_length": null,
+    "is_nullable": "YES",
+    "column_default": "CURRENT_TIMESTAMP"
+  },
+  {
+    "table_name": "departments",
+    "column_name": "dept_id",
+    "data_type": "integer",
+    "character_maximum_length": null,
+    "is_nullable": "NO",
+    "column_default": "nextval('departments_dept_id_seq'::regclass)"
+  },
+  {
+    "table_name": "departments",
+    "column_name": "company_code",
+    "data_type": "integer",
+    "character_maximum_length": null,
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "departments",
+    "column_name": "dept_code",
+    "data_type": "character varying",
+    "character_maximum_length": 50,
+    "is_nullable": "NO",
+    "column_default": null
+  },
+  {
+    "table_name": "departments",
+    "column_name": "dept_name",
+    "data_type": "character varying",
+    "character_maximum_length": 100,
+    "is_nullable": "NO",
+    "column_default": null
+  },
+  {
+    "table_name": "departments",
+    "column_name": "upper_dept_code",
+    "data_type": "character varying",
+    "character_maximum_length": 50,
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "departments",
+    "column_name": "depth",
+    "data_type": "integer",
+    "character_maximum_length": null,
+    "is_nullable": "YES",
+    "column_default": "1"
+  },
+  {
+    "table_name": "departments",
+    "column_name": "use_yn",
+    "data_type": "character",
+    "character_maximum_length": 1,
+    "is_nullable": "YES",
+    "column_default": "'Y'::bpchar"
+  },
+  {
+    "table_name": "duty_role_mapping",
+    "column_name": "mapping_id",
+    "data_type": "integer",
+    "character_maximum_length": null,
+    "is_nullable": "NO",
+    "column_default": "nextval('duty_role_mapping_mapping_id_seq'::regclass)"
+  },
+  {
+    "table_name": "duty_role_mapping",
+    "column_name": "company_code",
+    "data_type": "integer",
+    "character_maximum_length": null,
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "duty_role_mapping",
+    "column_name": "duty_code_id",
+    "data_type": "integer",
+    "character_maximum_length": null,
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "duty_role_mapping",
+    "column_name": "role_group_id",
+    "data_type": "integer",
+    "character_maximum_length": null,
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "duty_role_mapping",
+    "column_name": "use_yn",
+    "data_type": "character",
+    "character_maximum_length": 1,
+    "is_nullable": "YES",
+    "column_default": "'Y'::bpchar"
+  },
+  {
+    "table_name": "employees",
+    "column_name": "emp_id",
+    "data_type": "integer",
+    "character_maximum_length": null,
+    "is_nullable": "NO",
+    "column_default": "nextval('employees_emp_id_seq'::regclass)"
+  },
+  {
+    "table_name": "employees",
+    "column_name": "company_code",
+    "data_type": "integer",
+    "character_maximum_length": null,
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "employees",
+    "column_name": "emp_no",
+    "data_type": "character varying",
+    "character_maximum_length": 50,
+    "is_nullable": "NO",
+    "column_default": null
+  },
+  {
+    "table_name": "employees",
+    "column_name": "email",
+    "data_type": "character varying",
+    "character_maximum_length": 255,
+    "is_nullable": "NO",
+    "column_default": null
+  },
+  {
+    "table_name": "employees",
+    "column_name": "name",
+    "data_type": "character varying",
+    "character_maximum_length": 100,
+    "is_nullable": "NO",
+    "column_default": null
+  },
+  {
+    "table_name": "employees",
+    "column_name": "phone",
+    "data_type": "character varying",
+    "character_maximum_length": 50,
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "employees",
+    "column_name": "hire_date",
+    "data_type": "date",
+    "character_maximum_length": null,
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "employees",
+    "column_name": "dept_id",
+    "data_type": "integer",
+    "character_maximum_length": null,
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "employees",
+    "column_name": "pos_code_id",
+    "data_type": "integer",
+    "character_maximum_length": null,
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "employees",
+    "column_name": "duty_code_id",
+    "data_type": "integer",
+    "character_maximum_length": null,
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "employees",
+    "column_name": "user_category",
+    "data_type": "character varying",
+    "character_maximum_length": 20,
+    "is_nullable": "YES",
+    "column_default": "'INTERNAL'::character varying"
+  },
+  {
+    "table_name": "employees",
+    "column_name": "account_status",
+    "data_type": "character varying",
+    "character_maximum_length": 20,
+    "is_nullable": "YES",
+    "column_default": "'ACTIVE'::character varying"
+  },
+  {
+    "table_name": "employees",
+    "column_name": "use_yn",
+    "data_type": "character",
+    "character_maximum_length": 1,
+    "is_nullable": "YES",
+    "column_default": "'Y'::bpchar"
+  },
+  {
+    "table_name": "employees",
+    "column_name": "created_at",
+    "data_type": "timestamp without time zone",
+    "character_maximum_length": null,
+    "is_nullable": "YES",
+    "column_default": "CURRENT_TIMESTAMP"
+  },
+  {
+    "table_name": "employees",
+    "column_name": "login_id",
+    "data_type": "character varying",
+    "character_maximum_length": 50,
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "employees",
+    "column_name": "password",
+    "data_type": "character varying",
+    "character_maximum_length": 255,
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "employees",
+    "column_name": "last_login_at",
+    "data_type": "timestamp without time zone",
+    "character_maximum_length": null,
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "menus",
+    "column_name": "menu_id",
+    "data_type": "integer",
+    "character_maximum_length": null,
+    "is_nullable": "NO",
+    "column_default": "nextval('menus_menu_id_seq'::regclass)"
+  },
+  {
+    "table_name": "menus",
+    "column_name": "upper_menu_code",
+    "data_type": "character varying",
+    "character_maximum_length": 50,
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "menus",
+    "column_name": "menu_code",
+    "data_type": "character varying",
+    "character_maximum_length": 50,
+    "is_nullable": "NO",
+    "column_default": null
+  },
+  {
+    "table_name": "menus",
+    "column_name": "menu_name",
+    "data_type": "character varying",
+    "character_maximum_length": 100,
+    "is_nullable": "NO",
+    "column_default": null
+  },
+  {
+    "table_name": "menus",
+    "column_name": "menu_url",
+    "data_type": "character varying",
+    "character_maximum_length": 255,
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "menus",
+    "column_name": "sort_order",
+    "data_type": "integer",
+    "character_maximum_length": null,
+    "is_nullable": "YES",
+    "column_default": "0"
+  },
+  {
+    "table_name": "menus",
+    "column_name": "use_yn",
+    "data_type": "character",
+    "character_maximum_length": 1,
+    "is_nullable": "YES",
+    "column_default": "'Y'::bpchar"
+  },
+  {
+    "table_name": "role_groups",
+    "column_name": "role_group_id",
+    "data_type": "integer",
+    "character_maximum_length": null,
+    "is_nullable": "NO",
+    "column_default": "nextval('role_groups_role_group_id_seq'::regclass)"
+  },
+  {
+    "table_name": "role_groups",
+    "column_name": "company_code",
+    "data_type": "integer",
+    "character_maximum_length": null,
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "role_groups",
+    "column_name": "role_group_name",
+    "data_type": "character varying",
+    "character_maximum_length": 50,
+    "is_nullable": "NO",
+    "column_default": null
+  },
+  {
+    "table_name": "role_groups",
+    "column_name": "use_yn",
+    "data_type": "character",
+    "character_maximum_length": 1,
+    "is_nullable": "YES",
+    "column_default": "'Y'::bpchar"
+  },
+  {
+    "table_name": "role_menu_map",
+    "column_name": "map_id",
+    "data_type": "integer",
+    "character_maximum_length": null,
+    "is_nullable": "NO",
+    "column_default": "nextval('role_menu_map_map_id_seq'::regclass)"
+  },
+  {
+    "table_name": "role_menu_map",
+    "column_name": "role_group_id",
+    "data_type": "integer",
+    "character_maximum_length": null,
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "role_menu_map",
+    "column_name": "menu_id",
+    "data_type": "integer",
+    "character_maximum_length": null,
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "role_menu_map",
+    "column_name": "use_yn",
+    "data_type": "character",
+    "character_maximum_length": 1,
+    "is_nullable": "YES",
+    "column_default": "'Y'::bpchar"
+  },
+  {
+    "table_name": "user_social_auth",
+    "column_name": "social_id",
+    "data_type": "integer",
+    "character_maximum_length": null,
+    "is_nullable": "NO",
+    "column_default": "nextval('user_social_auth_social_id_seq'::regclass)"
+  },
+  {
+    "table_name": "user_social_auth",
+    "column_name": "emp_id",
+    "data_type": "integer",
+    "character_maximum_length": null,
+    "is_nullable": "YES",
+    "column_default": null
+  },
+  {
+    "table_name": "user_social_auth",
+    "column_name": "provider",
+    "data_type": "character varying",
+    "character_maximum_length": 20,
+    "is_nullable": "NO",
+    "column_default": null
+  },
+  {
+    "table_name": "user_social_auth",
+    "column_name": "provider_user_id",
+    "data_type": "character varying",
+    "character_maximum_length": 255,
+    "is_nullable": "NO",
+    "column_default": null
+  },
+  {
+    "table_name": "user_social_auth",
+    "column_name": "use_yn",
+    "data_type": "character",
+    "character_maximum_length": 1,
+    "is_nullable": "YES",
+    "column_default": "'Y'::bpchar"
+  },
+  {
+    "table_name": "user_social_auth",
+    "column_name": "created_at",
+    "data_type": "timestamp without time zone",
+    "character_maximum_length": null,
+    "is_nullable": "YES",
+    "column_default": "CURRENT_TIMESTAMP"
+  }
+]

@@ -1,0 +1,10 @@
+[
+  {
+    "company_code": 100,
+    "company_name": "VNTG CORP",
+    "domain": "vntgcorp.com",
+    "use_yn": "Y",
+    "created_at": "2026-01-13 05:21:44.027988",
+    "updated_at": "2026-01-13 05:21:44.027988"
+  }
+]
