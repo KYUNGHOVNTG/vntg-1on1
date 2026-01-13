@@ -40,8 +40,7 @@ class AuthenticationChecker:
     """
     인증 검증 클래스
 
-    JWT 토큰 검증, API 키 검증 등의 인증 로직을 구현합니다.
-    현재는 스텁으로 구현되어 있습니다.
+    JWT 토큰 검증을 구현합니다.
     """
 
     async def verify_token(self, authorization: Optional[str] = Header(None)) -> dict:
@@ -52,16 +51,10 @@ class AuthenticationChecker:
             authorization: Authorization 헤더 (Bearer {token})
 
         Returns:
-            dict: 검증된 사용자 정보
+            dict: 검증된 사용자 정보 (JWT payload)
 
         Raises:
             HTTPException: 토큰이 유효하지 않은 경우
-
-        TODO: 실제 JWT 토큰 검증 로직 구현
-            - JWT 디코딩
-            - 토큰 만료 확인
-            - 사용자 존재 여부 확인
-            - 토큰 블랙리스트 확인
         """
         if not authorization:
             raise HTTPException(
@@ -70,15 +63,28 @@ class AuthenticationChecker:
                 headers={"WWW-Authenticate": "Bearer"},
             )
 
-        # TODO: JWT 토큰 파싱 및 검증
-        # scheme, token = authorization.split()
-        # if scheme.lower() != "bearer":
-        #     raise HTTPException(...)
-        # payload = decode_jwt(token)
-        # return payload
+        # Bearer 토큰 파싱
+        parts = authorization.split()
+        if len(parts) != 2 or parts[0].lower() != "bearer":
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Invalid authorization header format. Expected 'Bearer <token>'",
+                headers={"WWW-Authenticate": "Bearer"},
+            )
 
-        # 스텁: 임시 사용자 정보 반환
-        return {"user_id": 1, "username": "test_user"}
+        token = parts[1]
+
+        # JWT 토큰 검증
+        try:
+            from server.app.shared.utils.jwt import verify_token as jwt_verify
+            payload = jwt_verify(token, token_type="access")
+            return payload
+        except Exception as e:
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail=f"Invalid or expired token: {str(e)}",
+                headers={"WWW-Authenticate": "Bearer"},
+            )
 
     async def verify_api_key(self, x_api_key: Optional[str] = Header(None)) -> dict:
         """
@@ -135,12 +141,57 @@ async def get_current_user(
             return user
 
     Args:
-        user_info: 검증된 사용자 정보
+        user_info: 검증된 사용자 정보 (JWT payload)
 
     Returns:
         dict: 사용자 정보
+            - emp_id: 직원 ID
+            - company_code: 회사 코드
+            - duty_code_id: 직급 ID
+            - permissions: 권한 목록
+            - email: 이메일
+            - name: 이름
     """
     return user_info
+
+
+def require_permissions(*required_permissions: str):
+    """
+    특정 권한이 필요한 엔드포인트를 보호하는 의존성 팩토리
+
+    사용법:
+        @router.delete("/users/{user_id}")
+        async def delete_user(
+            user_id: int,
+            user: dict = Depends(require_permissions("admin:all", "user:delete"))
+        ):
+            # 권한이 있는 경우에만 실행됨
+
+    Args:
+        *required_permissions: 필요한 권한 코드 목록
+
+    Returns:
+        callable: 권한 체크 의존성 함수
+    """
+    async def permission_checker(user: dict = Depends(get_current_user)) -> dict:
+        """권한 체크"""
+        user_permissions = user.get("permissions", [])
+
+        # 권한 체크
+        has_permission = any(
+            perm in user_permissions
+            for perm in required_permissions
+        )
+
+        if not has_permission:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail=f"Permission denied. Required: {', '.join(required_permissions)}",
+            )
+
+        return user
+
+    return permission_checker
 
 
 async def get_optional_current_user(
