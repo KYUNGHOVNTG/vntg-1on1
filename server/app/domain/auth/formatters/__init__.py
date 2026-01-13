@@ -37,15 +37,12 @@ class AuthFormatter(BaseFormatter[AuthFormatterInput, LoginResponse]):
             emp_id=user.emp_id,
             company_code=user.company_code,
             email=user.email,
-            emp_name=user.emp_name,
+            name=user.name,
             emp_no=user.emp_no,
-            department_code=user.department_code,
+            dept_id=user.dept_id,
             duty_code_id=user.duty_code_id,
-            position_name=user.position_name,
+            pos_code_id=user.pos_code_id,
             phone=user.phone,
-            mobile=user.mobile,
-            profile_image_url=user.profile_image_url,
-            join_date=user.join_date,
             last_login_at=user.last_login_at,
             use_yn=user.use_yn
         )

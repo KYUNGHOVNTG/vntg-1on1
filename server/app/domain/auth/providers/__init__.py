@@ -1,10 +1,10 @@
 """
-Auth 도메인 Provider
+Auth 도메인 Provider (기존 DB 구조 기반)
 
 사용자 인증 데이터 조회를 담당합니다.
 """
 
-from datetime import datetime
+from datetime import datetime, timedelta
 from typing import Optional
 
 from sqlalchemy import select
@@ -12,25 +12,24 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import joinedload
 
 from server.app.domain.auth.models import (
+    DutyRoleMapping,
+    Employee,
     LoginHistory,
-    RbacPermission,
-    RbacRole,
-    RbacRolePermission,
-    RbacUserRole,
+    Menu,
     RefreshToken,
-    UserAccount,
+    RoleGroup,
+    RoleMenuMap,
     UserSocialAuth,
 )
 from server.app.domain.auth.schemas import AuthProviderInput, AuthProviderOutput
 from server.app.shared.base.provider import BaseProvider
-from server.app.shared.exceptions import NotFoundException
 
 
 class AuthProvider(BaseProvider[AuthProviderInput, AuthProviderOutput]):
     """
     인증 데이터 조회 Provider
 
-    사용자 계정, 권한, 소셜 인증 정보를 조회합니다.
+    기존 employees, duty_role_mapping 테이블을 사용합니다.
     """
 
     def __init__(self, db: AsyncSession):
@@ -46,9 +45,6 @@ class AuthProvider(BaseProvider[AuthProviderInput, AuthProviderOutput]):
 
         Returns:
             AuthProviderOutput: 사용자 정보, 권한, 소셜 인증 정보
-
-        Raises:
-            NotFoundException: 사용자를 찾을 수 없는 경우
         """
         user = None
         permissions = []
@@ -66,16 +62,15 @@ class AuthProvider(BaseProvider[AuthProviderInput, AuthProviderOutput]):
                 company_code=input_data.company_code
             )
 
-        # 사용자 권한 조회
+        # 사용자 권한 조회 (role_groups 기반)
         if user:
-            permissions = await self.get_user_permissions(user.emp_id)
+            permissions = await self.get_user_permissions(user.emp_id, user.duty_code_id, user.company_code)
 
         # 소셜 인증 조회 (필요시)
         if input_data.google_id:
             social_auth = await self.get_social_auth(
-                company_code=input_data.company_code,
                 provider="GOOGLE",
-                provider_id=input_data.google_id
+                provider_user_id=input_data.google_id
             )
 
         return AuthProviderOutput(
@@ -86,39 +81,37 @@ class AuthProvider(BaseProvider[AuthProviderInput, AuthProviderOutput]):
 
     async def get_user_by_email(
         self,
-        company_code: str,
+        company_code: int,
         email: str
-    ) -> Optional[UserAccount]:
+    ) -> Optional[Employee]:
         """
         이메일로 사용자를 조회합니다.
 
         Args:
-            company_code: 회사 코드
+            company_code: 회사 코드 (숫자)
             email: 이메일
 
         Returns:
-            UserAccount | None: 사용자 정보
+            Employee | None: 사용자 정보
         """
         stmt = (
-            select(UserAccount)
+            select(Employee)
             .where(
-                UserAccount.company_code == company_code,
-                UserAccount.email == email,
-                UserAccount.use_yn == "Y"
-            )
-            .options(
-                joinedload(UserAccount.user_roles).joinedload(RbacUserRole.role)
+                Employee.company_code == company_code,
+                Employee.email == email,
+                Employee.use_yn == "Y",
+                Employee.account_status == "ACTIVE"
             )
         )
         result = await self.db.execute(stmt)
-        user = result.unique().scalar_one_or_none()
+        user = result.scalar_one_or_none()
         return user
 
     async def get_user_by_id(
         self,
         emp_id: int,
-        company_code: str
-    ) -> Optional[UserAccount]:
+        company_code: int
+    ) -> Optional[Employee]:
         """
         직원 ID로 사용자를 조회합니다.
 
@@ -127,63 +120,115 @@ class AuthProvider(BaseProvider[AuthProviderInput, AuthProviderOutput]):
             company_code: 회사 코드
 
         Returns:
-            UserAccount | None: 사용자 정보
+            Employee | None: 사용자 정보
         """
         stmt = (
-            select(UserAccount)
+            select(Employee)
             .where(
-                UserAccount.emp_id == emp_id,
-                UserAccount.company_code == company_code,
-                UserAccount.use_yn == "Y"
-            )
-            .options(
-                joinedload(UserAccount.user_roles).joinedload(RbacUserRole.role)
+                Employee.emp_id == emp_id,
+                Employee.company_code == company_code,
+                Employee.use_yn == "Y",
+                Employee.account_status == "ACTIVE"
             )
         )
         result = await self.db.execute(stmt)
-        user = result.unique().scalar_one_or_none()
+        user = result.scalar_one_or_none()
         return user
 
-    async def get_user_permissions(self, emp_id: int) -> list[str]:
+    async def get_user_permissions(
+        self,
+        emp_id: int,
+        duty_code_id: Optional[int],
+        company_code: int
+    ) -> list[str]:
         """
-        사용자의 권한 목록을 조회합니다.
+        사용자의 권한 목록을 조회합니다 (duty_role_mapping 기반).
 
         Args:
             emp_id: 직원 ID
+            duty_code_id: 직급 ID
+            company_code: 회사 코드
 
         Returns:
-            list[str]: 권한 코드 목록 (예: ["user:read", "user:write"])
+            list[str]: 역할 그룹 이름 목록
         """
+        if not duty_code_id:
+            return []
+
+        # duty_role_mapping을 통해 role_group 조회
         stmt = (
-            select(RbacPermission.permission_code)
-            .join(RbacRolePermission, RbacRolePermission.permission_id == RbacPermission.permission_id)
-            .join(RbacRole, RbacRole.role_id == RbacRolePermission.role_id)
-            .join(RbacUserRole, RbacUserRole.role_id == RbacRole.role_id)
+            select(RoleGroup.role_group_name)
+            .join(DutyRoleMapping, DutyRoleMapping.role_group_id == RoleGroup.role_group_id)
             .where(
-                RbacUserRole.emp_id == emp_id,
-                RbacUserRole.use_yn == "Y",
-                RbacRole.use_yn == "Y",
-                RbacPermission.use_yn == "Y"
+                DutyRoleMapping.duty_code_id == duty_code_id,
+                DutyRoleMapping.company_code == company_code,
+                DutyRoleMapping.use_yn == "Y",
+                RoleGroup.use_yn == "Y"
             )
             .distinct()
         )
         result = await self.db.execute(stmt)
-        permissions = [row[0] for row in result.all()]
-        return permissions
+        roles = [row[0] for row in result.all() if row[0]]
+        return roles
+
+    async def get_user_menus(
+        self,
+        duty_code_id: Optional[int],
+        company_code: int
+    ) -> list[dict]:
+        """
+        사용자의 메뉴 권한을 조회합니다 (role_menu_map 기반).
+
+        Args:
+            duty_code_id: 직급 ID
+            company_code: 회사 코드
+
+        Returns:
+            list[dict]: 메뉴 정보 목록
+        """
+        if not duty_code_id:
+            return []
+
+        stmt = (
+            select(Menu)
+            .join(RoleMenuMap, RoleMenuMap.menu_id == Menu.menu_id)
+            .join(RoleGroup, RoleGroup.role_group_id == RoleMenuMap.role_group_id)
+            .join(DutyRoleMapping, DutyRoleMapping.role_group_id == RoleGroup.role_group_id)
+            .where(
+                DutyRoleMapping.duty_code_id == duty_code_id,
+                DutyRoleMapping.company_code == company_code,
+                DutyRoleMapping.use_yn == "Y",
+                RoleGroup.use_yn == "Y",
+                RoleMenuMap.use_yn == "Y",
+                Menu.use_yn == "Y"
+            )
+            .distinct()
+        )
+        result = await self.db.execute(stmt)
+        menus = result.scalars().all()
+
+        return [
+            {
+                "menu_id": menu.menu_id,
+                "menu_name": menu.menu_name,
+                "menu_path": menu.menu_path,
+                "parent_menu_id": menu.parent_menu_id,
+                "menu_order": menu.menu_order
+            }
+            for menu in menus
+        ]
 
     async def get_social_auth(
         self,
-        company_code: str,
         provider: str,
-        provider_id: str
+        provider_user_id: str
     ) -> Optional[UserSocialAuth]:
         """
         소셜 인증 정보를 조회합니다.
 
         Args:
-            company_code: 회사 코드
             provider: 제공자 (GOOGLE, KAKAO 등)
-            provider_id: 제공자 고유 ID
+            provider_user_id: 제공자 고유 ID
 
         Returns:
             UserSocialAuth | None: 소셜 인증 정보
@@ -191,12 +236,11 @@ class AuthProvider(BaseProvider[AuthProviderInput, AuthProviderOutput]):
         stmt = (
             select(UserSocialAuth)
             .where(
-                UserSocialAuth.company_code == company_code,
                 UserSocialAuth.provider == provider,
-                UserSocialAuth.provider_id == provider_id,
+                UserSocialAuth.provider_user_id == provider_user_id,
                 UserSocialAuth.use_yn == "Y"
             )
-            .options(joinedload(UserSocialAuth.user))
+            .options(joinedload(UserSocialAuth.employee))
         )
         result = await self.db.execute(stmt)
         social_auth = result.unique().scalar_one_or_none()
@@ -209,10 +253,7 @@ class AuthProvider(BaseProvider[AuthProviderInput, AuthProviderOutput]):
         Args:
             emp_id: 직원 ID
         """
-        stmt = (
-            select(UserAccount)
-            .where(UserAccount.emp_id == emp_id)
-        )
+        stmt = select(Employee).where(Employee.emp_id == emp_id)
         result = await self.db.execute(stmt)
         user = result.scalar_one_or_none()
 
@@ -234,19 +275,15 @@ class AuthProvider(BaseProvider[AuthProviderInput, AuthProviderOutput]):
         Returns:
             int: 실패 횟수
         """
-        stmt = (
-            select(UserAccount)
-            .where(UserAccount.emp_id == emp_id)
-        )
+        stmt = select(Employee).where(Employee.emp_id == emp_id)
         result = await self.db.execute(stmt)
         user = result.scalar_one_or_none()
 
         if user:
-            user.failed_login_count += 1
+            user.failed_login_count = (user.failed_login_count or 0) + 1
 
             # 5회 이상 실패 시 계정 잠금 (30분)
             if user.failed_login_count >= 5:
-                from datetime import timedelta
                 user.account_locked_until = datetime.utcnow() + timedelta(minutes=30)
 
             await self.db.commit()
@@ -257,7 +294,7 @@ class AuthProvider(BaseProvider[AuthProviderInput, AuthProviderOutput]):
     async def save_refresh_token(
         self,
         emp_id: int,
-        company_code: str,
+        company_code: int,
         token_hash: str,
         expires_at: datetime,
         device_info: Optional[str] = None,
@@ -322,10 +359,7 @@ class AuthProvider(BaseProvider[AuthProviderInput, AuthProviderOutput]):
         Args:
             token_hash: 토큰 해시값
         """
-        stmt = (
-            select(RefreshToken)
-            .where(RefreshToken.token_hash == token_hash)
-        )
+        stmt = select(RefreshToken).where(RefreshToken.token_hash == token_hash)
         result = await self.db.execute(stmt)
         token = result.scalar_one_or_none()
 
@@ -336,7 +370,7 @@ class AuthProvider(BaseProvider[AuthProviderInput, AuthProviderOutput]):
 
     async def log_login_attempt(
         self,
-        company_code: str,
+        company_code: int,
         email: str,
         login_method: str,
         success: bool,
@@ -377,10 +411,8 @@ class AuthProvider(BaseProvider[AuthProviderInput, AuthProviderOutput]):
     async def create_social_auth(
         self,
         emp_id: int,
-        company_code: str,
         provider: str,
-        provider_id: str,
-        provider_email: str,
+        provider_user_id: str,
         profile_data: Optional[dict] = None
     ) -> UserSocialAuth:
         """
@@ -388,23 +420,19 @@ class AuthProvider(BaseProvider[AuthProviderInput, AuthProviderOutput]):
 
         Args:
             emp_id: 직원 ID
-            company_code: 회사 코드
             provider: 제공자 (GOOGLE, KAKAO 등)
-            provider_id: 제공자 고유 ID
-            provider_email: 제공자 이메일
-            profile_data: 프로필 데이터 (JSON)
+            provider_user_id: 제공자 고유 ID
+            profile_data: 프로필 데이터
 
         Returns:
             UserSocialAuth: 소셜 인증 정보
         """
         social_auth = UserSocialAuth(
             emp_id=emp_id,
-            company_code=company_code,
             provider=provider,
-            provider_id=provider_id,
-            provider_email=provider_email,
-            profile_data=profile_data,
-            use_yn="Y"
+            provider_user_id=provider_user_id,
+            use_yn="Y",
+            created_at=datetime.utcnow()
         )
         self.db.add(social_auth)
         await self.db.commit()

@@ -6,12 +6,17 @@ API v1 라우터 통합
 
 from fastapi import APIRouter
 
-from server.app.api.v1.endpoints import sample
+from server.app.api.v1.endpoints import auth, sample
 
 # v1 메인 라우터 생성
 api_router = APIRouter()
 
 # 각 도메인의 라우터를 포함
+
+# Auth 도메인 (인증/인가)
+api_router.include_router(auth.router)
+
+# Sample 도메인 (예시)
 api_router.include_router(
     sample.router,
     # prefix는 이미 sample.router에 정의되어 있음
