@@ -134,6 +134,18 @@ class Settings(BaseSettings):
     )
 
     # ====================
+    # OAuth Settings
+    # ====================
+    GOOGLE_CLIENT_ID: Optional[str] = Field(
+        default=None,
+        description="구글 OAuth 2.0 클라이언트 ID"
+    )
+    GOOGLE_CLIENT_SECRET: Optional[str] = Field(
+        default=None,
+        description="구글 OAuth 2.0 클라이언트 시크릿"
+    )
+
+    # ====================
     # Logging Settings
     # ====================
     LOG_LEVEL: str = Field(
