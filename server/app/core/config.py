@@ -56,6 +56,14 @@ class Settings(BaseSettings):
         default=["http://localhost:3000"],
         description="CORS 허용 오리진"
     )
+    SERVER_HOST: str = Field(
+        default="0.0.0.0",
+        description="서버 호스트"
+    )
+    SERVER_PORT: int = Field(
+        default=8000,
+        description="서버 포트"
+    )
 
     # ====================
     # Database Settings
@@ -132,6 +140,14 @@ class Settings(BaseSettings):
         default=30,
         description="액세스 토큰 만료 시간 (분)"
     )
+    REFRESH_TOKEN_EXPIRE_DAYS: int = Field(
+        default=7,
+        description="리프레시 토큰 만료 시간 (일)"
+    )
+    JWT_ALGORITHM: str = Field(
+        default="HS256",
+        description="JWT 서명 알고리즘"
+    )
 
     # ====================
     # OAuth Settings
@@ -143,6 +159,34 @@ class Settings(BaseSettings):
     GOOGLE_CLIENT_SECRET: Optional[str] = Field(
         default=None,
         description="구글 OAuth 2.0 클라이언트 시크릿"
+    )
+    GOOGLE_LOGIN_URL: str = Field(
+        default="https://accounts.google.com/o/oauth2/auth",
+        description="구글 OAuth 로그인 URL"
+    )
+    GOOGLE_CALLBACK_URL: str = Field(
+        default="http://localhost:8080/auth/google/callback.do",
+        description="구글 OAuth 콜백 URL"
+    )
+    GOOGLE_SCOPE: str = Field(
+        default="https://www.googleapis.com/auth/userinfo.email https://www.googleapis.com/auth/userinfo.profile",
+        description="구글 OAuth 스코프"
+    )
+    GOOGLE_TOKEN_URL: str = Field(
+        default="https://oauth2.googleapis.com/token",
+        description="구글 OAuth 토큰 URL"
+    )
+    GOOGLE_USER_URL: str = Field(
+        default="https://www.googleapis.com/oauth2/v1/userinfo",
+        description="구글 사용자 정보 URL"
+    )
+    GOOGLE_TOKENINFO_URL: str = Field(
+        default="https://oauth2.googleapis.com/tokeninfo",
+        description="구글 토큰 검증 URL"
+    )
+    GOOGLE_API_TIMEOUT: float = Field(
+        default=10.0,
+        description="구글 API 요청 타임아웃 (초)"
     )
 
     # ====================

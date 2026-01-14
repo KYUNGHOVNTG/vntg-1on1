@@ -7,6 +7,7 @@ Google OAuth 2.0 유틸리티
 import httpx
 from typing import Optional
 
+from server.app.core.config import settings
 from server.app.domain.auth.schemas import GoogleUserInfo
 from server.app.shared.exceptions import ApplicationException
 
@@ -33,9 +34,9 @@ async def verify_google_token(token: str) -> GoogleUserInfo:
         # https://oauth2.googleapis.com/tokeninfo?id_token={token}
         async with httpx.AsyncClient() as client:
             response = await client.get(
-                "https://oauth2.googleapis.com/tokeninfo",
+                settings.GOOGLE_TOKENINFO_URL,
                 params={"id_token": token},
-                timeout=10.0
+                timeout=settings.GOOGLE_API_TIMEOUT
             )
 
             if response.status_code != 200:
