@@ -45,7 +45,7 @@ class Company(Base):
 
     # Relationships
     employees: Mapped[list["Employee"]] = relationship(
-        back_populates="company", foreign_keys="[Employee.company_code]"
+        back_populates="company"
     )
 
 
@@ -83,7 +83,7 @@ class Employee(Base):
 
     # Relationships
     company: Mapped["Company"] = relationship(
-        back_populates="employees", foreign_keys=[company_code]
+        back_populates="employees"
     )
     social_auths: Mapped[list["UserSocialAuth"]] = relationship(
         back_populates="employee", cascade="all, delete-orphan"
