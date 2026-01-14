@@ -10,7 +10,7 @@ from server.app.domain.auth.schemas import (
     UserInfo,
 )
 from server.app.shared.base.formatter import BaseFormatter
-from server.app.shared.utils.jwt import ACCESS_TOKEN_EXPIRE_MINUTES
+from server.app.core.config import settings
 
 
 class AuthFormatter(BaseFormatter[AuthFormatterInput, LoginResponse]):
@@ -52,7 +52,7 @@ class AuthFormatter(BaseFormatter[AuthFormatterInput, LoginResponse]):
             access_token=input_data.access_token,
             refresh_token=input_data.refresh_token,
             token_type="bearer",
-            expires_in=ACCESS_TOKEN_EXPIRE_MINUTES * 60,  # 초 단위로 변환
+            expires_in=settings.ACCESS_TOKEN_EXPIRE_MINUTES * 60,  # 초 단위로 변환
             user=user_info,
             permissions=input_data.permissions
         )

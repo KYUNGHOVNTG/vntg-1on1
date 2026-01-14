@@ -4,14 +4,21 @@ FastAPI 애플리케이션 진입점
 AI 데이터 분석 웹 서비스의 메인 애플리케이션입니다.
 """
 
-from contextlib import asynccontextmanager
-from typing import AsyncGenerator
+# 1️⃣ Rich traceback (가장 먼저)
+from rich.traceback import install
+install(show_locals=True)
 
+# 2️⃣ FastAPI core
 from fastapi import FastAPI, Request, status
 from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.middleware.trustedhost import TrustedHostMiddleware
 
+# 3️⃣ Python stdlib
+from contextlib import asynccontextmanager
+from typing import AsyncGenerator
+
+# 4️⃣ App 내부 모듈
 from server.app.core.config import settings
 from server.app.core.database import DatabaseManager
 from server.app.core.routers import router as core_router
@@ -20,8 +27,12 @@ from server.app.core.middleware import RequestIDMiddleware, ExternalLoggingMiddl
 from server.app.api.v1.router import api_router
 from server.app.shared.exceptions import ApplicationException
 
-# 로거 초기화
+# 5️⃣ FastAPI app 생성 (debug 필수)
+app = FastAPI(debug=True)
+
+# 6️⃣ 로거 초기화
 logger = get_logger(__name__)
+
 
 
 # ====================

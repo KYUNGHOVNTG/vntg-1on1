@@ -127,39 +127,19 @@ async def google_login(
     return result.data
 
 
-@router.post(
-    "/hash-password",
-    status_code=status.HTTP_200_OK,
-    summary="비밀번호 해싱 유틸리티 (개발용)",
-    description="""
-    평문 비밀번호를 BCRYPT로 해싱합니다.
+class HashPasswordRequest(BaseModel):
+        emp_id: int
+        plain_password: str
 
-    **개발/마이그레이션 전용 API입니다.**
-
-    사용 예:
-    1. 기존 평문 비밀번호('HASHED_PW')를 실제 비밀번호로 변경
-    2. 새로운 사용자 생성 시 비밀번호 해싱
-
-    **주의**: 프로덕션에서는 비활성화하세요!
-    """,
-)
+@router.post("/hash-password")
 async def hash_password_utility(
-    emp_id: int = Field(..., description="직원 ID"),
-    plain_password: str = Field(..., description="평문 비밀번호"),
+    request: HashPasswordRequest,
     db: AsyncSession = Depends(get_db),
 ):
-    """비밀번호 해싱 유틸리티 (개발용)"""
     service = AuthService(db=db)
-    success = await service.hash_user_password(emp_id, plain_password)
-
-    if not success:
-        raise ApplicationException(message="Failed to hash password", status_code=400)
-
-    return {
-        "message": "Password hashed successfully",
-        "emp_id": emp_id,
-        "success": True
-    }
+    success = await service.hash_user_password(
+        request.emp_id, request.plain_password
+    )
 
 
 @router.post(
