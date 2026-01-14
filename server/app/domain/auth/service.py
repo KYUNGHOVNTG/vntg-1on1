@@ -60,6 +60,9 @@ class AuthService(BaseService[LoginRequest, LoginResponse]):
             BusinessLogicException: 계정 잠김 등
         """
         try:
+            # 디버그 로그
+            print(f"[DEBUG] Login attempt - company_code: {request.company_code}, email: {request.email}")
+
             # 1. 사용자 조회
             provider_input = AuthProviderInput(
                 company_code=request.company_code,
@@ -67,6 +70,11 @@ class AuthService(BaseService[LoginRequest, LoginResponse]):
             )
             provider_output = await self.provider.provide(provider_input)
             user = provider_output.user
+
+            # 디버그 로그
+            print(f"[DEBUG] User found: {user is not None}")
+            if user:
+                print(f"[DEBUG] User details - emp_id: {user.emp_id}, email: {user.email}, use_yn: {user.use_yn}, account_status: {user.account_status}")
 
             if not user:
                 # 로그인 실패 기록
