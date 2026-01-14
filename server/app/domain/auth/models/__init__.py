@@ -34,8 +34,8 @@ class Company(Base):
 
     __tablename__ = "companies"
 
-    company_code: Mapped[int] = mapped_column("company_cod", Integer, primary_key=True)
-    company_name: Mapped[Optional[str]] = mapped_column("company_nam", String, nullable=True)
+    company_code: Mapped[int] = mapped_column(Integer, primary_key=True)
+    company_name: Mapped[Optional[str]] = mapped_column(String, nullable=True)
     domain: Mapped[Optional[str]] = mapped_column(String, nullable=True)
     use_yn: Mapped[str] = mapped_column(CHAR(1), default="Y", nullable=False)
     created_at: Mapped[datetime] = mapped_column(
@@ -56,7 +56,7 @@ class Employee(Base):
 
     emp_id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
     company_code: Mapped[int] = mapped_column(
-        "company_code", Integer, ForeignKey("companies.company_code"), nullable=False
+        Integer, ForeignKey("companies.company_code"), nullable=False
     )
     emp_no: Mapped[Optional[str]] = mapped_column(String, nullable=True)
     email: Mapped[str] = mapped_column(String, nullable=False)
@@ -103,11 +103,9 @@ class RoleGroup(Base):
 
     role_group_id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
     company_code: Mapped[Optional[int]] = mapped_column(
-        "company_cod", Integer, ForeignKey("companies.company_cod"), nullable=True
+        Integer, ForeignKey("companies.company_code"), nullable=True
     )
-    role_group_name: Mapped[Optional[str]] = mapped_column(
-        "role_group_na", String, nullable=True
-    )
+    role_group_name: Mapped[Optional[str]] = mapped_column(String, nullable=True)
     use_yn: Mapped[str] = mapped_column(CHAR(1), default="Y", nullable=False)
 
     # Relationships
@@ -125,9 +123,7 @@ class DutyRoleMapping(Base):
     __tablename__ = "duty_role_mapping"
 
     mapping_id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
-    company_code: Mapped[Optional[int]] = mapped_column(
-        "company_cod", Integer, nullable=True
-    )
+    company_code: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
     duty_code_id: Mapped[Optional[int]] = mapped_column(Integer, nullable=True)
     role_group_id: Mapped[Optional[int]] = mapped_column(
         Integer, ForeignKey("role_groups.role_group_id"), nullable=True
