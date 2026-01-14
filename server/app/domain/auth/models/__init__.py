@@ -56,7 +56,7 @@ class Employee(Base):
 
     emp_id: Mapped[int] = mapped_column(Integer, primary_key=True, autoincrement=True)
     company_code: Mapped[int] = mapped_column(
-        "company_cod", Integer, ForeignKey("companies.company_cod"), nullable=False
+        "company_code", Integer, ForeignKey("companies.company_code"), nullable=False
     )
     emp_no: Mapped[Optional[str]] = mapped_column(String, nullable=True)
     email: Mapped[str] = mapped_column(String, nullable=False)
