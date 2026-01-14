@@ -13,11 +13,6 @@ from jose import JWTError, jwt
 from server.app.core.config import settings
 from server.app.shared.exceptions import UnauthorizedException
 
-# JWT 설정
-ALGORITHM = "HS256"
-ACCESS_TOKEN_EXPIRE_MINUTES = 30  # 30분
-REFRESH_TOKEN_EXPIRE_DAYS = 7  # 7일
-
 
 def create_access_token(
     data: dict[str, Any],
@@ -61,7 +56,7 @@ def create_access_token(
     if expires_delta:
         expire = datetime.now(timezone.utc) + expires_delta
     else:
-        expire = datetime.now(timezone.utc) + timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+        expire = datetime.now(timezone.utc) + timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
 
     to_encode.update({
         "exp": expire,
@@ -70,7 +65,7 @@ def create_access_token(
     })
 
     # JWT 토큰 생성
-    encoded_jwt = jwt.encode(to_encode, settings.SECRET_KEY, algorithm=ALGORITHM)
+    encoded_jwt = jwt.encode(to_encode, settings.SECRET_KEY, algorithm=settings.JWT_ALGORITHM)
     return encoded_jwt
 
 
@@ -108,7 +103,7 @@ def create_refresh_token(
     if expires_delta:
         expire = datetime.now(timezone.utc) + expires_delta
     else:
-        expire = datetime.now(timezone.utc) + timedelta(days=REFRESH_TOKEN_EXPIRE_DAYS)
+        expire = datetime.now(timezone.utc) + timedelta(days=settings.REFRESH_TOKEN_EXPIRE_DAYS)
 
     to_encode.update({
         "exp": expire,
@@ -117,7 +112,7 @@ def create_refresh_token(
     })
 
     # JWT 토큰 생성
-    encoded_jwt = jwt.encode(to_encode, settings.SECRET_KEY, algorithm=ALGORITHM)
+    encoded_jwt = jwt.encode(to_encode, settings.SECRET_KEY, algorithm=settings.JWT_ALGORITHM)
     return encoded_jwt
 
 
@@ -142,7 +137,7 @@ def verify_token(token: str, token_type: str = "access") -> dict[str, Any]:
     """
     try:
         # JWT 디코딩
-        payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[ALGORITHM])
+        payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.JWT_ALGORITHM])
 
         # 토큰 타입 확인
         if payload.get("type") != token_type:
