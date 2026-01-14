@@ -33,8 +33,7 @@ class AuthProvider(BaseProvider[AuthProviderInput, AuthProviderOutput]):
     """
 
     def __init__(self, db: AsyncSession):
-        super().__init__()
-        self.db = db
+        super().__init__(db)
 
     async def provide(self, input_data: AuthProviderInput) -> AuthProviderOutput:
         """
